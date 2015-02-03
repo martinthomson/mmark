@@ -42,6 +42,7 @@ const (
 	EXTENSION_TABLES                     // render tables
 	EXTENSION_TITLEBLOCK_TOML            // Titleblock in TOML
 	EXTENSION_UNIQUE_HEADER_IDS          // When detecting identical anchors add a sequence number -1, -2 etc.
+	EXTENSION_TASK_LISTS                 // Allow task list markers in lists.
 
 	commonHtmlFlags = 0 |
 		HTML_USE_XHTML
@@ -180,6 +181,7 @@ type Renderer interface {
 	HRule(out *bytes.Buffer)
 	List(out *bytes.Buffer, text func() bool, flags, start int, group []byte)
 	ListItem(out *bytes.Buffer, text []byte, flags int)
+	ListTask(out *bytes.Buffer, done bool)
 	Paragraph(out *bytes.Buffer, text func() bool, flags int)
 	Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte)
 	TableRow(out *bytes.Buffer, text []byte)

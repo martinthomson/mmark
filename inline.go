@@ -252,6 +252,7 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	// [^refId] == deferred footnote
 	// [@text] == citation
 	// [-@text] == citation, add to reference, but suppress output
+	// [ ]., [x] or [X] as tasklist item
 	var t linkType
 	if offset > 0 && data[offset-1] == '!' {
 		t = linkImg
@@ -268,6 +269,21 @@ func link(p *parser, out *bytes.Buffer, data []byte, offset int) int {
 	}
 
 	data = data[offset:]
+	// tasklist?
+	if p.flags&EXTENSION_TASK_LISTS != 0 && p.insideList != 0 && len(data) > 3 {
+		if data[0] == '[' && data[2] == ']' && isspace(data[3]) {
+			switch {
+			case isspace(data[1]):
+				p.r.ListTask(out, false)
+				return 4
+			case data[1] == 'X':
+				fallthrough
+			case data[1] == 'x':
+				p.r.ListTask(out, true)
+				return 4
+			}
+		}
+	}
 
 	var (
 		i           = 1

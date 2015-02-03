@@ -402,6 +402,8 @@ func (options *html) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	out.WriteString("</li>\n")
 }
 
+func (options *html) ListTask(out *bytes.Buffer, done bool) {}
+
 func (options *html) Example(out *bytes.Buffer, index int) {
 	out.WriteByte('(')
 	out.WriteString(strconv.Itoa(index))

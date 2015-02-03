@@ -341,6 +341,8 @@ func (options *xml) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	out.WriteString("</li>\n")
 }
 
+func (options *xml) ListTask(out *bytes.Buffer, done bool) {}
+
 func (options *xml) Example(out *bytes.Buffer, index int) {
 	out.WriteByte('(')
 	out.WriteString(strconv.Itoa(index))

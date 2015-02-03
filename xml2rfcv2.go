@@ -336,6 +336,8 @@ func (options *xml2) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	options.paraInList = false
 }
 
+func (options *xml2) ListTask(out *bytes.Buffer, done bool) {}
+
 func (options *xml2) Example(out *bytes.Buffer, index int) {
 	out.WriteByte('(')
 	out.WriteString(strconv.Itoa(index))
