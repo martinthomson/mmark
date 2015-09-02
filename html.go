@@ -593,8 +593,9 @@ func (options *html) Example(out *bytes.Buffer, index int) {
 func (options *html) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
 	doubleSpace(out)
+	ial := options.inlineAttr()
 
-	out.WriteString("<p>")
+	out.WriteString("<p" + ial.String() + ">")
 	if !text() {
 		out.Truncate(marker)
 		return

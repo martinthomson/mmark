@@ -2206,6 +2206,8 @@ func (p *parser) renderParagraph(out *bytes.Buffer, data []byte) {
 	} else {
 		flags &= ^_LIST_INSIDE_LIST // Not really, just in a list
 	}
+	p.r.SetInlineAttr(p.ial)
+	p.ial = nil
 	p.r.Paragraph(out, work, flags)
 }
 

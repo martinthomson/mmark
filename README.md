@@ -284,7 +284,7 @@ implements the following extensions:
 
 *  **IAL**, kramdown's Inline Attribute List syntax, but took the CommonMark
     proposal, thus without the colon after the brace `{#id .class key=value key="value"}`.
-    IALs are used for the following (block) elements:
+    IALs are used for the following block elements:
     * Table
     * Code Block
     * Fenced Code Block
