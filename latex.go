@@ -13,7 +13,7 @@
 //
 //
 
-package blackfriday
+package mmark
 
 import (
 	"bytes"
@@ -102,7 +102,7 @@ func (options *Latex) HRule(out *bytes.Buffer) {
 
 func (options *Latex) List(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
-	if flags&LIST_TYPE_ORDERED != 0 {
+	if flags&_LIST_TYPE_ORDERED != 0 {
 		out.WriteString("\n\\begin{enumerate}\n")
 	} else {
 		out.WriteString("\n\\begin{itemize}\n")
@@ -111,7 +111,7 @@ func (options *Latex) List(out *bytes.Buffer, text func() bool, flags int) {
 		out.Truncate(marker)
 		return
 	}
-	if flags&LIST_TYPE_ORDERED != 0 {
+	if flags&_LIST_TYPE_ORDERED != 0 {
 		out.WriteString("\n\\end{enumerate}\n")
 	} else {
 		out.WriteString("\n\\end{itemize}\n")
@@ -137,9 +137,9 @@ func (options *Latex) Table(out *bytes.Buffer, header []byte, body []byte, colum
 	out.WriteString("\n\\begin{tabular}{")
 	for _, elt := range columnData {
 		switch elt {
-		case TABLE_ALIGNMENT_LEFT:
+		case _TABLE_ALIGNMENT_LEFT:
 			out.WriteByte('l')
-		case TABLE_ALIGNMENT_RIGHT:
+		case _TABLE_ALIGNMENT_RIGHT:
 			out.WriteByte('r')
 		default:
 			out.WriteByte('c')
@@ -184,7 +184,7 @@ func (options *Latex) FootnoteItem(out *bytes.Buffer, name, text []byte, flags i
 
 func (options *Latex) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	out.WriteString("\\href{")
-	if kind == LINK_TYPE_EMAIL {
+	if kind == _LINK_TYPE_EMAIL {
 		out.WriteString("mailto:")
 	}
 	out.Write(link)
@@ -317,7 +317,7 @@ func (options *Latex) DocumentHeader(out *bytes.Buffer) {
 	out.WriteString("  pdfstartview=FitH,%\n")
 	out.WriteString("  breaklinks=true,%\n")
 	out.WriteString("  pdfauthor={Blackfriday Markdown Processor v")
-	out.WriteString(VERSION)
+	out.WriteString(Version)
 	out.WriteString("}}\n")
 	out.WriteString("\n")
 	out.WriteString("\\newcommand{\\HRule}{\\rule{\\linewidth}{0.5mm}}\n")
