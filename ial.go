@@ -132,7 +132,7 @@ func (i *inlineAttr) add(j *inlineAttr) *inlineAttr {
 }
 
 // String renders an IAL and returns a string that can be included in the tag:
-// class="class" anchor="id" key="value". The string s has a space as the first character.k
+// class="class" anchor="id" key="value". The string s has a space as the first character.
 func (i *inlineAttr) String() (s string) {
 	if i == nil {
 		return ""
@@ -166,6 +166,13 @@ func (i *inlineAttr) String() (s string) {
 		s += " " + strings.Join(attr, " ")
 	}
 	return s
+}
+
+func (i *inlineAttr) LatexString() (s string) {
+	s = i.String()
+	// s already starts with a space
+	s = " %%" + s
+	return
 }
 
 // GetOrDefaultAttr sets the value under key if is is not set or

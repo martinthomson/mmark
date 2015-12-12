@@ -74,16 +74,18 @@ func (options *latex) TitleBlock(out *bytes.Buffer, text []byte) {
 }
 
 func (options *latex) BlockQuote(out *bytes.Buffer, text, attribution []byte) {
+	ial := options.inlineAttr()
 	parts := bytes.Split(attribution, []byte("--"))
-	for _, p := range parts {
-		bytes.TrimSpace(p)
+	for i := range parts {
+		parts[i] = bytes.TrimSpace(parts[i])
 	}
-	out.WriteString("\\begin{quotation}\n")
+	out.WriteString("\\begin{quotation}" + ial.LatexString() + "\n")
 	out.Write(text)
 	if len(parts) > 1 && len(parts[1]) > 0 {
 		out.WriteString("\\sourceatright{")
 		out.Write(parts[1])
 		out.WriteByte('}')
+		out.WriteByte('\n')
 	}
 	out.WriteString("\\end{quotation}\n")
 }

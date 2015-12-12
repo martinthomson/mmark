@@ -390,8 +390,8 @@ func (options *html) BlockQuote(out *bytes.Buffer, text []byte, attribution []by
 	// attribution can potentially be split on --: meta -- who
 	ial := options.inlineAttr()
 	parts := bytes.Split(attribution, []byte("--"))
-	for _, p := range parts {
-		bytes.TrimSpace(p)
+	for i := range parts {
+		parts[i] = bytes.TrimSpace(parts[i])
 	}
 	doubleSpace(out)
 	out.WriteString("<blockquote" + ial.String() + ">\n")
