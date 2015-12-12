@@ -27,10 +27,11 @@ const DEFAULT_TITLE = ""
 
 func main() {
 	// parse command-line options
-	var page, xml, xml2, toml, rfc7328, version bool
+	var page, xml, xml2, latex, toml, rfc7328, version bool
 	var css, head string
 
 	flag.BoolVar(&page, "page", false, "generate a standalone HTML page")
+	flag.BoolVar(&latex, "latex", false, "generate LaTeX output")
 	flag.BoolVar(&xml, "xml", false, "generate XML2RFC v3 output")
 	flag.BoolVar(&xml2, "xml2", false, "generate XML2RFC v2 output")
 	flag.BoolVar(&version, "version", false, "show mmark version")
@@ -129,6 +130,11 @@ func main() {
 			xmlFlags = mmark.XML2_STANDALONE
 		}
 		renderer = mmark.Xml2Renderer(xmlFlags)
+	case latex:
+		if page {
+			latexFlags = mmark.LATEX_STANDALONE
+		}
+		renderer = mmark.LaTeXRenderer(latexFlags)
 	default:
 		// render the data into HTML
 		htmlFlags := 0

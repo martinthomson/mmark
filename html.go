@@ -52,7 +52,7 @@ type html struct {
 	flags    int    // HTML_* options
 	closeTag string // how to end singleton tags: either " />" or ">"
 	css      string // optional css file url (used with HTML_COMPLETE_PAGE)
-	head     string // option html file to be included
+	head     string // optional html file to be included
 
 	// store the IAL we see for this block element
 	ial *inlineAttr
@@ -418,7 +418,7 @@ func (options *html) Aside(out *bytes.Buffer, text []byte) {
 	out.WriteString("</aside>\n")
 }
 
-func (options *html) Table(out *bytes.Buffer, header []byte, body []byte, footer []byte, columnData []int, caption []byte) {
+func (options *html) Table(out *bytes.Buffer, header, body, footer []byte, columnData []int, caption []byte) {
 	ial := options.inlineAttr()
 
 	doubleSpace(out)
