@@ -131,10 +131,11 @@ func main() {
 		}
 		renderer = mmark.Xml2Renderer(xmlFlags)
 	case latex:
+		latexFlags := 0
 		if page {
 			latexFlags = mmark.LATEX_STANDALONE
 		}
-		renderer = mmark.LaTeXRenderer(latexFlags)
+		renderer = mmark.LatexRenderer(latexFlags)
 	default:
 		// render the data into HTML
 		htmlFlags := 0

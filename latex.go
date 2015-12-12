@@ -16,7 +16,7 @@ const (
 // Latex is a type that implements the Renderer interface for LaTeX output.
 //
 // Do not create this directly, instead use the LatexRenderer function.
-type Latex struct {
+type latex struct {
 	flags int    // LATEX_* options
 	head  string // optionial latex file to be included
 
@@ -42,15 +42,15 @@ type Latex struct {
 // flags is a set of LATEX_* options ORed together (currently no such options
 // are defined).
 func LatexRenderer(flags int) Renderer {
-	return &Latex{}
+	return &latex{}
 }
 
-func (options *Latex) GetFlags() int {
+func (options *latex) GetFlags() int {
 	return 0
 }
 
 // render code chunks using verbatim, or listings if we have a language
-func (options *Latex) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure, callout bool) {
+func (options *latex) BlockCode(out *bytes.Buffer, text []byte, lang string, caption []byte, subfigure, callout bool) {
 	if lang == "" {
 		out.WriteString("\n\\begin{verbatim}\n")
 	} else {
@@ -66,40 +66,49 @@ func (options *Latex) BlockCode(out *bytes.Buffer, text []byte, lang string, cap
 	}
 }
 
-func (options *Latex) Aside(out *bytes.Buffer, text []byte) {
+func (options *latex) Aside(out *bytes.Buffer, text []byte) {
 }
 
-func (options *Latex) TitleBlock(out *bytes.Buffer, text []byte) {
+func (options *latex) TitleBlock(out *bytes.Buffer, text []byte) {
 
 }
 
-func (options *Latex) BlockQuote(out *bytes.Buffer, text, attribution []byte) {
-	out.WriteString("\n\\begin{quotation}\n")
+func (options *latex) BlockQuote(out *bytes.Buffer, text, attribution []byte) {
+	parts := bytes.Split(attribution, []byte("--"))
+	for _, p := range parts {
+		bytes.TrimSpace(p)
+	}
+	out.WriteString("\\begin{quotation}\n")
 	out.Write(text)
-	out.WriteString("\n\\end{quotation}\n")
+	if len(parts) > 1 && len(parts[1]) > 0 {
+		out.WriteString("\\sourceatright{")
+		out.Write(parts[1])
+		out.WriteByte('}')
+	}
+	out.WriteString("\\end{quotation}\n")
 }
 
-func (options *Latex) CommentHtml(out *bytes.Buffer, text []byte) {
+func (options *latex) CommentHtml(out *bytes.Buffer, text []byte) {
 	doubleSpace(out)
 	out.Write(text)
 	out.WriteByte('\n')
 }
 
-func (options *Latex) BlockHtml(out *bytes.Buffer, text []byte) {
+func (options *latex) BlockHtml(out *bytes.Buffer, text []byte) {
 	// a pretty lame thing to do...
 	out.WriteString("\n\\begin{verbatim}\n")
 	out.Write(text)
 	out.WriteString("\n\\end{verbatim}\n")
 }
 
-func (options *Latex) Flags() int {
+func (options *latex) Flags() int {
 	return options.flags
 }
 
-func (options *Latex) TitleBlockTOML(out *bytes.Buffer, block *title) {
+func (options *latex) TitleBlockTOML(out *bytes.Buffer, block *title) {
 }
 
-func (options *Latex) Part(out *bytes.Buffer, text func() bool, id string) {
+func (options *latex) Part(out *bytes.Buffer, text func() bool, id string) {
 	if id != "" {
 		out.WriteString(fmt.Sprintf("<h1 class=\"part\" id=\"%s\">", id))
 	} else {
@@ -110,7 +119,7 @@ func (options *Latex) Part(out *bytes.Buffer, text func() bool, id string) {
 }
 
 // Section without numbering
-func (options *Latex) Note(out *bytes.Buffer, text func() bool, id string) {
+func (options *latex) Note(out *bytes.Buffer, text func() bool, id string) {
 	options.inlineAttr() //reset the IAL
 	if id != "" {
 		out.WriteString(fmt.Sprintf("<h1 class=\"note\" id=\"%s\">", id))
@@ -121,7 +130,7 @@ func (options *Latex) Note(out *bytes.Buffer, text func() bool, id string) {
 	out.WriteString(fmt.Sprintf("</h1>\n"))
 }
 
-func (options *Latex) SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string) {
+func (options *latex) SpecialHeader(out *bytes.Buffer, what []byte, text func() bool, id string) {
 	if string(what) == "preface" {
 		printf(nil, "handling preface like abstract")
 		what = []byte("abstract")
@@ -132,7 +141,7 @@ func (options *Latex) SpecialHeader(out *bytes.Buffer, what []byte, text func() 
 	return
 }
 
-func (options *Latex) Header(out *bytes.Buffer, text func() bool, level int, id string) {
+func (options *latex) Header(out *bytes.Buffer, text func() bool, level int, id string) {
 	marker := out.Len()
 
 	switch level {
@@ -156,18 +165,18 @@ func (options *Latex) Header(out *bytes.Buffer, text func() bool, level int, id 
 	out.WriteString("}\n")
 }
 
-func (options *Latex) HRule(out *bytes.Buffer) {
+func (options *latex) HRule(out *bytes.Buffer) {
 	out.WriteString("\n\\HRule\n")
 }
 
-func (options *Latex) CalloutCode(out *bytes.Buffer, index, id string) {
+func (options *latex) CalloutCode(out *bytes.Buffer, index, id string) {
 	out.WriteString("<span class=\"callout\">")
 	out.WriteString(index)
 	out.WriteString("</span>")
 	return
 }
 
-func (options *Latex) CalloutText(out *bytes.Buffer, id string, ids []string) {
+func (options *latex) CalloutText(out *bytes.Buffer, id string, ids []string) {
 	for i, k := range ids {
 		out.WriteString("<span class=\"callout\">")
 		out.WriteString(k)
@@ -178,36 +187,37 @@ func (options *Latex) CalloutText(out *bytes.Buffer, id string, ids []string) {
 	}
 }
 
-func (options *Latex) List(out *bytes.Buffer, text func() bool, flags, start int, group []byte) {
+func (options *latex) List(out *bytes.Buffer, text func() bool, flags, start int, group []byte) {
 	marker := out.Len()
 	if flags&_LIST_TYPE_ORDERED != 0 {
-		out.WriteString("\n\\begin{enumerate}\n")
+		out.WriteString("\\begin{enumerate}\n")
 	} else {
-		out.WriteString("\n\\begin{itemize}\n")
+		out.WriteString("\\begin{itemize}\n")
 	}
 	if !text() {
 		out.Truncate(marker)
 		return
 	}
 	if flags&_LIST_TYPE_ORDERED != 0 {
-		out.WriteString("\n\\end{enumerate}\n")
+		out.WriteString("\\end{enumerate}\n")
 	} else {
-		out.WriteString("\n\\end{itemize}\n")
+		out.WriteString("\\end{itemize}\n")
 	}
 }
 
-func (options *Latex) ListItem(out *bytes.Buffer, text []byte, flags int) {
-	out.WriteString("\n\\item ")
+func (options *latex) ListItem(out *bytes.Buffer, text []byte, flags int) {
+	out.WriteString("\\item ")
 	out.Write(text)
+	out.WriteByte('\n')
 }
 
-func (options *Latex) Example(out *bytes.Buffer, index int) {
+func (options *latex) Example(out *bytes.Buffer, index int) {
 	out.WriteByte('(')
 	out.WriteString(strconv.Itoa(index))
 	out.WriteByte(')')
 }
 
-func (options *Latex) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
+func (options *latex) Paragraph(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
 	out.WriteString("\n")
 	if !text() {
@@ -217,7 +227,7 @@ func (options *Latex) Paragraph(out *bytes.Buffer, text func() bool, flags int) 
 	out.WriteString("\n")
 }
 
-func (options *Latex) Table(out *bytes.Buffer, header, body, footer []byte, columnData []int, caption []byte) {
+func (options *latex) Table(out *bytes.Buffer, header, body, footer []byte, columnData []int, caption []byte) {
 	out.WriteString("\n\\begin{tabular}{")
 	for _, elt := range columnData {
 		switch elt {
@@ -236,21 +246,21 @@ func (options *Latex) Table(out *bytes.Buffer, header, body, footer []byte, colu
 	out.WriteString("\n\\end{tabular}\n")
 }
 
-func (options *Latex) TableRow(out *bytes.Buffer, text []byte) {
+func (options *latex) TableRow(out *bytes.Buffer, text []byte) {
 	if out.Len() > 0 {
 		out.WriteString(" \\\\\n")
 	}
 	out.Write(text)
 }
 
-func (options *Latex) TableHeaderCell(out *bytes.Buffer, text []byte, align, colspan int) {
+func (options *latex) TableHeaderCell(out *bytes.Buffer, text []byte, align, colspan int) {
 	if out.Len() > 0 {
 		out.WriteString(" & ")
 	}
 	out.Write(text)
 }
 
-func (options *Latex) TableCell(out *bytes.Buffer, text []byte, align, colspan int) {
+func (options *latex) TableCell(out *bytes.Buffer, text []byte, align, colspan int) {
 	if out.Len() > 0 {
 		out.WriteString(" & ")
 	}
@@ -258,21 +268,21 @@ func (options *Latex) TableCell(out *bytes.Buffer, text []byte, align, colspan i
 }
 
 // TODO: this
-func (options *Latex) Footnotes(out *bytes.Buffer, text func() bool) {
+func (options *latex) Footnotes(out *bytes.Buffer, text func() bool) {
 
 }
 
-func (options *Latex) FootnoteItem(out *bytes.Buffer, name, text []byte, flags int) {
+func (options *latex) FootnoteItem(out *bytes.Buffer, name, text []byte, flags int) {
 
 }
 
-func (options *Latex) Math(out *bytes.Buffer, text []byte, display bool) {
+func (options *latex) Math(out *bytes.Buffer, text []byte, display bool) {
 	ial := options.inlineAttr()
 	s := ial.String()
 	s = s
 }
 
-func (options *Latex) AutoLink(out *bytes.Buffer, link []byte, kind int) {
+func (options *latex) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	out.WriteString("\\href{")
 	if kind == _LINK_TYPE_EMAIL {
 		out.WriteString("mailto:")
@@ -283,37 +293,37 @@ func (options *Latex) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	out.WriteString("}")
 }
 
-func (options *Latex) CodeSpan(out *bytes.Buffer, text []byte) {
+func (options *latex) CodeSpan(out *bytes.Buffer, text []byte) {
 	out.WriteString("\\texttt{")
 	escapeSpecialChars(out, text)
 	out.WriteString("}")
 }
 
-func (options *Latex) DoubleEmphasis(out *bytes.Buffer, text []byte) {
+func (options *latex) DoubleEmphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("\\textbf{")
 	out.Write(text)
 	out.WriteString("}")
 }
 
-func (options *Latex) Emphasis(out *bytes.Buffer, text []byte) {
+func (options *latex) Emphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("\\textit{")
 	out.Write(text)
 	out.WriteString("}")
 }
 
-func (options *Latex) Subscript(out *bytes.Buffer, text []byte) {
+func (options *latex) Subscript(out *bytes.Buffer, text []byte) {
 	out.WriteString("<sub>")
 	out.Write(text)
 	out.WriteString("</sub>")
 }
 
-func (options *Latex) Superscript(out *bytes.Buffer, text []byte) {
+func (options *latex) Superscript(out *bytes.Buffer, text []byte) {
 	out.WriteString("<sup>")
 	out.Write(text)
 	out.WriteString("</sup>")
 }
 
-func (options *Latex) Figure(out *bytes.Buffer, text []byte, caption []byte) {
+func (options *latex) Figure(out *bytes.Buffer, text []byte, caption []byte) {
 	s := options.inlineAttr().String()
 	out.WriteString("<figure role=\"group\"" + s + ">\n")
 	out.WriteString("<figcaption>")
@@ -323,7 +333,7 @@ func (options *Latex) Figure(out *bytes.Buffer, text []byte, caption []byte) {
 	out.WriteString("</figure>\n")
 }
 
-func (options *Latex) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte, subfigure bool) {
+func (options *latex) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte, subfigure bool) {
 	if bytes.HasPrefix(link, []byte("http://")) || bytes.HasPrefix(link, []byte("https://")) {
 		// treat it like a link
 		out.WriteString("\\href{")
@@ -338,11 +348,11 @@ func (options *Latex) Image(out *bytes.Buffer, link []byte, title []byte, alt []
 	}
 }
 
-func (options *Latex) LineBreak(out *bytes.Buffer) {
+func (options *latex) LineBreak(out *bytes.Buffer) {
 	out.WriteString(" \\\\\n")
 }
 
-func (options *Latex) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
+func (options *latex) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
 	out.WriteString("\\href{")
 	out.Write(link)
 	out.WriteString("}{")
@@ -350,30 +360,30 @@ func (options *Latex) Link(out *bytes.Buffer, link []byte, title []byte, content
 	out.WriteString("}")
 }
 
-func (options *Latex) Abbreviation(out *bytes.Buffer, abbr, title []byte) {
+func (options *latex) Abbreviation(out *bytes.Buffer, abbr, title []byte) {
 	out.Write(abbr)
 }
 
-func (options *Latex) RawHtmlTag(out *bytes.Buffer, tag []byte) {
+func (options *latex) RawHtmlTag(out *bytes.Buffer, tag []byte) {
 }
 
-func (options *Latex) TripleEmphasis(out *bytes.Buffer, text []byte) {
+func (options *latex) TripleEmphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("\\textbf{\\textit{")
 	out.Write(text)
 	out.WriteString("}}")
 }
 
-func (options *Latex) StrikeThrough(out *bytes.Buffer, text []byte) {
+func (options *latex) StrikeThrough(out *bytes.Buffer, text []byte) {
 	out.WriteString("\\sout{")
 	out.Write(text)
 	out.WriteString("}")
 }
 
-func (options *Latex) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
+func (options *latex) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
 
 }
 
-func (options *Latex) Index(out *bytes.Buffer, primary, secondary []byte, prim bool) {
+func (options *latex) Index(out *bytes.Buffer, primary, secondary []byte, prim bool) {
 	idx := idx{string(primary), string(secondary)}
 	id := ""
 	if ids, ok := options.index[idx]; ok {
@@ -389,7 +399,7 @@ func (options *Latex) Index(out *bytes.Buffer, primary, secondary []byte, prim b
 	options.indexCount++
 }
 
-func (options *Latex) Citation(out *bytes.Buffer, link, title []byte) {
+func (options *latex) Citation(out *bytes.Buffer, link, title []byte) {
 	out.WriteString("<a class=\"cite\" href=\"#")
 	out.Write(bytes.ToLower(link))
 	out.WriteString("\">")
@@ -427,18 +437,18 @@ func escapeSpecialChars(out *bytes.Buffer, text []byte) {
 	}
 }
 
-func (options *Latex) Entity(out *bytes.Buffer, entity []byte) {
+func (options *latex) Entity(out *bytes.Buffer, entity []byte) {
 	// TODO: convert this into a unicode character or something
 	out.Write(entity)
 }
 
-func (options *Latex) NormalText(out *bytes.Buffer, text []byte) {
+func (options *latex) NormalText(out *bytes.Buffer, text []byte) {
 	escapeSpecialChars(out, text)
 }
 
 // header and footer
-func (options *Latex) DocumentHeader(out *bytes.Buffer, first bool) {
-	if !first {
+func (options *latex) DocumentHeader(out *bytes.Buffer, first bool) {
+	if !first || options.flags&LATEX_STANDALONE == 0 {
 		return
 	}
 	out.WriteString("\\documentclass{article}\n")
@@ -469,27 +479,27 @@ func (options *Latex) DocumentHeader(out *bytes.Buffer, first bool) {
 	out.WriteString("\\begin{document}\n")
 }
 
-func (options *Latex) DocumentFooter(out *bytes.Buffer, first bool) {
+func (options *latex) DocumentFooter(out *bytes.Buffer, first bool) {
 	if !first {
 		return
 	}
 	out.WriteString("\n\\end{document}\n")
 }
 
-func (options *Latex) DocumentMatter(out *bytes.Buffer, matter int) {
+func (options *latex) DocumentMatter(out *bytes.Buffer, matter int) {
 	if matter == _DOC_BACK_MATTER {
 		options.appendix = true
 	}
 }
 
-func (options *Latex) References(out *bytes.Buffer, citations map[string]*citation) {
+func (options *latex) References(out *bytes.Buffer, citations map[string]*citation) {
 }
 
-func (options *Latex) SetInlineAttr(i *inlineAttr) {
+func (options *latex) SetInlineAttr(i *inlineAttr) {
 	options.ial = i
 }
 
-func (options *Latex) inlineAttr() *inlineAttr {
+func (options *latex) inlineAttr() *inlineAttr {
 	if options.ial == nil {
 		return newInlineAttr()
 	}
