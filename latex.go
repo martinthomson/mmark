@@ -73,6 +73,12 @@ func (options *latex) TitleBlock(out *bytes.Buffer, text []byte) {
 
 }
 
+
+// mmBlockQuoteText
+// mmBlockQuoteCite
+// mmBlockQuoteFrom
+// cite attribute (URI)
+// quotedFrom
 func (options *latex) BlockQuote(out *bytes.Buffer, text, attribution []byte) {
 	ial := options.inlineAttr()
 	parts := bytes.Split(attribution, []byte("--"))
@@ -81,13 +87,17 @@ func (options *latex) BlockQuote(out *bytes.Buffer, text, attribution []byte) {
 	}
 	out.WriteString("\\begin{quotation}" + ial.LatexString() + "\n")
 	out.Write(text)
-	if len(parts) > 1 && len(parts[1]) > 0 {
+	if len(parts) > 0 {
 		out.WriteString("\\sourceatright{")
+		out.Write(parts[0])
+		if len(parts) > 1 {
+		out.WriteString(" -- ")
 		out.Write(parts[1])
+	}
 		out.WriteByte('}')
 		out.WriteByte('\n')
 	}
-	out.WriteString("\\end{quotation}\n")
+	out.WriteString("\\end{quotation}" + ial.LatexString() + "\n")
 }
 
 func (options *latex) CommentHtml(out *bytes.Buffer, text []byte) {
