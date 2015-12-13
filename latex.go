@@ -39,10 +39,9 @@ type latex struct {
 // LatexRenderer creates and configures a Latex object, which
 // satisfies the Renderer interface.
 //
-// flags is a set of LATEX_* options ORed together (currently no such options
-// are defined).
+// flags is a set of LATEX_* options ORed together.
 func LatexRenderer(flags int) Renderer {
-	return &latex{}
+	return &latex{flags: flags, group: make(map[string]int)}
 }
 
 func (options *latex) GetFlags() int {
@@ -463,36 +462,13 @@ func (options *latex) DocumentHeader(out *bytes.Buffer, first bool) {
 	if !first || options.flags&LATEX_STANDALONE == 0 {
 		return
 	}
-	out.WriteString("\\documentclass{article}\n")
-	out.WriteString("\n")
-	out.WriteString("\\usepackage{graphicx}\n")
-	out.WriteString("\\usepackage{listings}\n")
-	out.WriteString("\\usepackage[margin=1in]{geometry}\n")
-	out.WriteString("\\usepackage[utf8]{inputenc}\n")
-	out.WriteString("\\usepackage{verbatim}\n")
-	out.WriteString("\\usepackage[normalem]{ulem}\n")
-	out.WriteString("\\usepackage{hyperref}\n")
-	out.WriteString("\n")
-	out.WriteString("\\hypersetup{colorlinks,%\n")
-	out.WriteString("  citecolor=black,%\n")
-	out.WriteString("  filecolor=black,%\n")
-	out.WriteString("  linkcolor=black,%\n")
-	out.WriteString("  urlcolor=black,%\n")
-	out.WriteString("  pdfstartview=FitH,%\n")
-	out.WriteString("  breaklinks=true,%\n")
-	out.WriteString("  pdfauthor={Blackfriday Markdown Processor v")
-	out.WriteString(Version)
-	out.WriteString("}}\n")
-	out.WriteString("\n")
-	out.WriteString("\\newcommand{\\HRule}{\\rule{\\linewidth}{0.5mm}}\n")
-	out.WriteString("\\addtolength{\\parskip}{0.5\\baselineskip}\n")
-	out.WriteString("\\parindent=0pt\n")
+	out.WriteString("\\documentclass{memoir}\n")
 	out.WriteString("\n")
 	out.WriteString("\\begin{document}\n")
 }
 
 func (options *latex) DocumentFooter(out *bytes.Buffer, first bool) {
-	if !first {
+	if !first || options.flags&LATEX_STANDALONE == 0 {
 		return
 	}
 	out.WriteString("\n\\end{document}\n")
