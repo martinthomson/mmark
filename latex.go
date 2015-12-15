@@ -7,6 +7,10 @@ import (
 	"fmt"
 	"strconv"
 )
+// TODO
+// * convert citations into bibtex and output them in the reference section
+// * automatically download refs we need?
+// * render titleblock
 
 // LaTeX renderer configuration options.
 const (
@@ -462,7 +466,13 @@ func (options *latex) DocumentHeader(out *bytes.Buffer, first bool) {
 	if !first || options.flags&LATEX_STANDALONE == 0 {
 		return
 	}
+	packages := []string{"filecontents"}
+
 	out.WriteString("\\documentclass{memoir}\n")
+	out.WriteString("\n")
+	for _, package := range packages {
+		out.WriteString("\usepackage{" + package + "}\n")
+	}
 	out.WriteString("\n")
 	out.WriteString("\\begin{document}\n")
 }
