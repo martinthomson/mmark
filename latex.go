@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strconv"
 )
+
 // TODO
 // * convert citations into bibtex and output them in the reference section
 // * automatically download refs we need?
@@ -76,12 +77,6 @@ func (options *latex) TitleBlock(out *bytes.Buffer, text []byte) {
 
 }
 
-
-// mmBlockQuoteText
-// mmBlockQuoteCite
-// mmBlockQuoteFrom
-// cite attribute (URI)
-// quotedFrom
 func (options *latex) BlockQuote(out *bytes.Buffer, text, attribution []byte) {
 	ial := options.inlineAttr()
 	parts := bytes.Split(attribution, []byte("--"))
@@ -90,13 +85,14 @@ func (options *latex) BlockQuote(out *bytes.Buffer, text, attribution []byte) {
 	}
 	out.WriteString("\\begin{quotation}" + ial.LatexString() + "\n")
 	out.Write(text)
-	if len(parts) > 0 {
+	if len(parts) > 0 && len(parts[0]) > 0 {
+		// Check for URL like string use that.
 		out.WriteString("\\sourceatright{")
 		out.Write(parts[0])
 		if len(parts) > 1 {
-		out.WriteString(" -- ")
-		out.Write(parts[1])
-	}
+			out.WriteString("\\mmBlockQuoteSeperator{}")
+			out.Write(parts[1])
+		}
 		out.WriteByte('}')
 		out.WriteByte('\n')
 	}
@@ -470,11 +466,14 @@ func (options *latex) DocumentHeader(out *bytes.Buffer, first bool) {
 
 	out.WriteString("\\documentclass{memoir}\n")
 	out.WriteString("\n")
-	for _, package := range packages {
-		out.WriteString("\usepackage{" + package + "}\n")
+	for _, pkg := range packages {
+		out.WriteString("\\usepackage{" + pkg + "}\n")
 	}
 	out.WriteString("\n")
-	out.WriteString("\\begin{document}\n")
+	out.WriteString(`
+\newcommand{\mmBlockQuoteSeperator}{ -- }
+`)
+	out.WriteString("\n\\begin{document}\n")
 }
 
 func (options *latex) DocumentFooter(out *bytes.Buffer, first bool) {
